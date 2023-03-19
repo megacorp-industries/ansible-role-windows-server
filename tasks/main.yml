@@ -1,0 +1,26 @@
+---
+- name: Install all updates and reboot as many times as needed
+  win_updates:
+    category_names:
+      - SecurityUpdates
+      - CriticalUpdates
+    reboot: yes
+
+- name: Ensure the existence of the megacorp domain
+  win_domain:
+    dns_domain_name: "{{ DOMAIN_NAME }}"
+    domain_netbios_name: "{{ NETBIOS_NAME }}"
+    safe_mode_password: " {{ SAFE_MODE_PASSWD }}"
+  register: domain_install
+
+- name: Reboot if necessary to apply domain changes
+  win_reboot:
+  when: domain_install.reboot_required
+
+- name: Configure host as a domain controller
+  win_domain_controller:
+    dns_domain_name: "{{ DOMAIN_NAME }}"
+    domain_admin_user: "{{ DOMAIN_ADMIN }}@{{ DOMAIN_NAME }}"
+    domain_admin_password: "{{ DOMAIN_ADMIN_PASSWD }}"
+    safe_mode_password: "{{ SAFE_MODE_PASSWD }}"
+    state: domain_controller 
